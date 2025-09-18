@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wiki Page Comparator</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    textarea { width: 45%; height: 200px; margin: 5px; vertical-align: top; }
+    button { margin: 10px 0; padding: 8px 16px; }
+    pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; }
+    .output-blocks { display: flex; gap: 20px; margin-top: 20px; }
+    .output-blocks pre { flex: 1; }
+  </style>
+</head>
+<body>
+  <h2>Wiki Page Comparator</h2>
+  <p>Paste JSON from <code>api.php?action=query&list=allpages&aplimit=max&format=json</code> below:</p>
+
+  <div>
+    <textarea id="wiki1" placeholder="Paste Wiki 1 JSON here..."></textarea>
+    <textarea id="wiki2" placeholder="Paste Wiki 2 JSON here..."></textarea>
+  </div>
+
+  <button onclick="compareWikis()">Compare</button>
+
+  <h3>Results</h3>
+  <pre id="results"></pre>
+
+  <div class="output-blocks">
+    <div>
+      <h4>Wiki 1 Titles</h4>
+      <pre id="wiki1Titles"></pre>
+    </div>
+    <div>
+      <h4>Wiki 2 Titles</h4>
+      <pre id="wiki2Titles"></pre>
+    </div>
+  </div>
+
+  <script>
+    function extractTitles(jsonStr) {
+      try {
+        const data = JSON.parse(jsonStr);
+        if (data.query && data.query.allpages) {
+          return data.query.allpages.map(p => p.title);
+        }
+      } catch (e) {
+        return [];
+      }
+      return [];
+    }
+
+    function compareWikis() {
+      const wiki1Str = document.getElementById('wiki1').value;
+      const wiki2Str = document.getElementById('wiki2').value;
+
+      const titles1 = extractTitles(wiki1Str);
+      const titles2 = extractTitles(wiki2Str);
+
+      const set1 = new Set(titles1);
+      const set2 = new Set(titles2);
+
+      const intersection = titles1.filter(t => set2.has(t)).sort();
+
+      let output = '';
+      output += `Wiki 1 page count: ${titles1.length}\n`;
+      output += `Wiki 2 page count: ${titles2.length}\n\n`;
+      output += `Pages in both (${intersection.length}):\n`;
+      output += intersection.join("\n");
+
+      document.getElementById('results').textContent = output;
+      document.getElementById('wiki1Titles').textContent = titles1.join("\n");
+      document.getElementById('wiki2Titles').textContent = titles2.join("\n");
+    }
+  </script>
+</body>
+</html>
